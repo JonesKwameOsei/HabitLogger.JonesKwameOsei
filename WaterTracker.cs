@@ -203,6 +203,7 @@ internal class WaterTracker
             }
 
             int recordId;
+
             try
             {
                 recordId = AnsiConsole.Ask<int>("Enter the [red]ID[/] of the record you want to delete (or [red]0[/] to cancel):");
@@ -268,6 +269,353 @@ internal class WaterTracker
         }
     }
 
+    public void UpdateRecord()
+    {
+        try
+        {
+            Console.Clear();
+
+            var panel = new Panel(new Text("✏️ UPDATE WATER RECORD", new Style(Color.Green, Color.Black, Decoration.Bold)))
+                .Border(BoxBorder.Rounded)
+                .BorderColor(Color.Green);
+            AnsiConsole.Write(panel);
+            Console.WriteLine();
+
+            // Show current records first
+            try
+            {
+                ShowRecordsForSelection();
+            }
+            catch (SqliteException sqlEx)
+            {
+                _utilityHelpers.DBLoadDataErrorMessage(sqlEx);
+                return;
+            }
+
+            int recordId;
+            try
+            {
+                recordId = AnsiConsole.Ask<int>("Enter the [green]ID[/] of the record you want to update (or [red]0[/] to cancel):");
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine($"[red]❌ Invalid input: {ex.Message}[/]");
+                _sharedHelpers.WaitForKeyPress();
+                return;
+            }
+
+            if (recordId == 0) return;
+
+            if (recordId < 0)
+            {
+                _utilityHelpers.DBInputErrorMessage();
+                return;
+            }
+
+            // Get current record details
+            using (SqliteConnection connection = new SqliteConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+                    using (SqliteCommand selectCmd = connection.CreateCommand())
+                    {
+                        selectCmd.CommandText = "SELECT * FROM drinking_water WHERE Id = $id";
+                        selectCmd.Parameters.AddWithValue("$id", recordId);
+
+                        using (SqliteDataReader reader = selectCmd.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                AnsiConsole.MarkupLine("[red]❌ Record not found![/]");
+                                _sharedHelpers.WaitForKeyPress();
+                                return;
+                            }
+
+                            string currentDate = reader.GetString("Date");
+                            int currentQuantity = reader.GetInt32("Quantity");
+                            string currentDescription = reader.IsDBNull("Description") ? "" : reader.GetString("Description");
+
+                            Console.WriteLine();
+                            AnsiConsole.MarkupLine($"[dim]Current values:[/]");
+                            AnsiConsole.MarkupLine($"Date: [cyan]{currentDate}[/]");
+                            AnsiConsole.MarkupLine($"Glasses: [cyan]{currentQuantity}[/]");
+                            AnsiConsole.MarkupLine($"Description: [cyan]{(string.IsNullOrEmpty(currentDescription) ? "No description" : currentDescription)}[/]");
+                            Console.WriteLine();
+
+                            // Get new values with validation
+                            string newDate;
+                            int newQuantity;
+                            string newDescription;
+
+                            try
+                            {
+                                newDate = _sharedHelpers.GetValidDate($"Enter new date (current: {currentDate}):", currentDate);
+                                newQuantity = _sharedHelpers.GetValidInteger($"Enter new number of glasses (current: {currentQuantity}):", currentQuantity, 1, 50, "Glasses");
+                                newDescription = AnsiConsole.Ask($"Enter new description (current: {(string.IsNullOrEmpty(currentDescription) ? "No description" : currentDescription)}):", currentDescription);
+                            }
+                            catch (Exception ex)
+                            {
+                                AnsiConsole.MarkupLine($"[red]❌ Input error: {ex.Message}[/]");
+                                _sharedHelpers.WaitForKeyPress();
+                                return;
+                            }
+
+                            // Validate data before update
+                            if (newQuantity <= 0)
+                            {
+                                AnsiConsole.MarkupLine("[red]❌ Invalid data: Quantity must be greater than zero.[/]");
+                                _sharedHelpers.WaitForKeyPress();
+                                return;
+                            }
+
+                            reader.Close();
+
+                            // Update the record
+                            using (SqliteCommand updateCmd = connection.CreateCommand())
+                            {
+                                updateCmd.CommandText = @"
+                                    UPDATE drinking_water 
+                                    SET Date = $date, Quantity = $quantity, Description = $description 
+                                    WHERE Id = $id";
+                                updateCmd.Parameters.AddWithValue("$date", newDate);
+                                updateCmd.Parameters.AddWithValue("$quantity", newQuantity);
+                                updateCmd.Parameters.AddWithValue("$description", string.IsNullOrWhiteSpace(newDescription) ? DBNull.Value : newDescription);
+                                updateCmd.Parameters.AddWithValue("$id", recordId);
+
+                                int rowsAffected = updateCmd.ExecuteNonQuery();
+
+                                if (rowsAffected > 0)
+                                {
+                                    AnsiConsole.MarkupLine("[green]✅ Record updated successfully![/]");
+                                    ShowTodayProgress(newDate);
+                                }
+                                else
+                                {
+                                    AnsiConsole.MarkupLine("[yellow]⚠️ No rows were updated. Record may have been deleted.[/]");
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (SqliteException sqlEx)
+                {
+                    _utilityHelpers.DBUpdateErrorMessage(sqlEx);
+                }
+                catch (InvalidOperationException ioEx)
+                {
+                    _utilityHelpers.DBOperationErrorMessage(ioEx);
+                }
+            }
+        }
+        catch (FormatException formatEx)
+        {
+            AnsiConsole.MarkupLine($"[red]❌ Date format error: {formatEx.Message}[/]");
+            AnsiConsole.MarkupLine($"[yellow]⚠️  Please ensure you're using the correct date format (dd-MM-yy).[/]");
+        }
+        catch (ArgumentException argEx)
+        {
+            AnsiConsole.MarkupLine($"[red]❌ Input validation error: {argEx.Message}[/]");
+            AnsiConsole.MarkupLine($"[yellow]⚠️  Please check your input values and try again.[/]");
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[red]❌ An unexpected error occurred while updating your water record:[/]");
+            AnsiConsole.MarkupLine($"[red]   {ex.Message}[/]");
+            AnsiConsole.MarkupLine($"[yellow]⚠️  Please try again or restart the application.[/]");
+        }
+        finally
+        {
+            _sharedHelpers.WaitForKeyPress();
+        }
+    }
+
+    public void ShowStatistics()
+    {
+        try
+        {
+            Console.Clear();
+
+            var panel = new Panel(new Text("📊 HYDRATION STATISTICS", new Style(Color.Plum4, Color.Default, Decoration.Bold)))
+                .Border(BoxBorder.Rounded)
+                .BorderColor(Color.Magenta1);
+            AnsiConsole.Write(panel);
+
+            using (SqliteConnection connection = new SqliteConnection(connectionString))
+            {
+                try
+                {
+                    connection.Open();
+
+                    // Total statistics
+                    using (SqliteCommand totalCmd = connection.CreateCommand())
+                    {
+                        totalCmd.CommandText = "SELECT COUNT(*), COALESCE(SUM(Quantity), 0) FROM drinking_water";
+                        using (SqliteDataReader reader = totalCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                int totalEntries = reader.IsDBNull(0) ? 0 : reader.GetInt32(0);
+                                int totalGlasses = reader.IsDBNull(1) ? 0 : reader.GetInt32(1);
+
+                                Console.WriteLine();
+                                AnsiConsole.MarkupLine($"📋 Total entries: [cyan]{totalEntries:N0}[/]");
+                                AnsiConsole.MarkupLine($"🥤 Total glasses consumed: [cyan]{totalGlasses:N0}[/]");
+                                AnsiConsole.MarkupLine($"💧 Total water consumed: [cyan]{totalGlasses * 250:N0}ml[/]");
+
+                                if (totalEntries > 0)
+                                {
+                                    double avgGlassesPerDay = (double)totalGlasses / totalEntries;
+                                    AnsiConsole.MarkupLine($"📈 Average glasses per entry: [yellow]{avgGlassesPerDay:F1}[/]");
+                                }
+                            }
+                            else
+                            {
+                                AnsiConsole.MarkupLine("\n[yellow]⚠️ No statistics available. Start logging your water intake![/]");
+                            }
+                        }
+                    }
+
+                    // Goal achievement days
+                    using (SqliteCommand goalCmd = connection.CreateCommand())
+                    {
+                        goalCmd.CommandText = @"
+                            SELECT COUNT(*) FROM (
+                                SELECT Date 
+                                FROM drinking_water 
+                                GROUP BY Date 
+                                HAVING SUM(Quantity) >= $goal
+                            )";
+                        goalCmd.Parameters.AddWithValue("$goal", DAILY_GOAL_GLASSES);
+
+                        object? result = goalCmd.ExecuteScalar();
+                        int goalDays = result != DBNull.Value ? Convert.ToInt32(result) : 0;
+                        AnsiConsole.MarkupLine($"🎯 Days goal achieved: [green]{goalDays:N0}[/]");
+                    }
+
+                    // Best day
+                    using (SqliteCommand bestCmd = connection.CreateCommand())
+                    {
+                        bestCmd.CommandText = @"
+                            SELECT Date, SUM(Quantity) as Total 
+                            FROM drinking_water 
+                            GROUP BY Date 
+                            ORDER BY Total DESC 
+                            LIMIT 1";
+
+                        using (SqliteDataReader reader = bestCmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                string bestDate = reader.GetString("Date");
+                                int bestAmount = reader.GetInt32("Total");
+                                AnsiConsole.MarkupLine($"🏆 Best day: [gold3]{bestDate}[/] - [gold3]{bestAmount:N0} glasses ({bestAmount * 250:N0}ml)[/]");
+                            }
+                            else
+                            {
+                                AnsiConsole.MarkupLine("🏆 Best day: [dim]No data available[/]");
+                            }
+                        }
+                    }
+                }
+                catch (SqliteException sqlEx)
+                {
+                    AnsiConsole.MarkupLine($"[red]❌ Database error while retrieving statistics: {sqlEx.Message}[/]");
+                    AnsiConsole.MarkupLine($"[yellow]⚠️ Some statistics may not be available.[/]");
+                }
+                catch (InvalidOperationException ioEx)
+                {
+                    AnsiConsole.MarkupLine($"[red]❌ Connection error while retrieving statistics: {ioEx.Message}[/]");
+                    AnsiConsole.MarkupLine($"[yellow]⚠️ Unable to connect to the database.[/]");
+                }
+            }
+
+            try
+            {
+                if (_sharedHelpers.PromptForWeeklyProgressReport())
+                {
+                    ShowWeeklyProgress();
+                }
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine($"[red]❌ Error displaying weekly progress: {ex.Message}[/]");
+            }
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[red]❌ An unexpected error occurred while displaying statistics:[/]");
+            AnsiConsole.MarkupLine($"[red]   {ex.Message}[/]");
+            AnsiConsole.MarkupLine($"[yellow]⚠️ Please try again or restart the application.[/]");
+        }
+        finally
+        {
+            _sharedHelpers.WaitForKeyPress();
+        }
+    }
+
+    private void DisplayProgressBar(int consumed)
+    {
+        try
+        {
+            if (consumed < 0)
+            {
+                AnsiConsole.MarkupLine("[red]❌ Invalid input: Consumption cannot be negative.[/]");
+                return;
+            }
+
+            double percentage = Math.Min((double)consumed / DAILY_GOAL_GLASSES, 1.0);
+
+            var rule = new Spectre.Console.Rule($"[cyan]📊 Today's Progress: {consumed}/{DAILY_GOAL_GLASSES} glasses ({percentage:P0})[/]")
+                .RuleStyle("cyan");
+            AnsiConsole.Write(rule);
+
+            Console.WriteLine();
+            AnsiConsole.MarkupLine($"💧 Water: [cyan]{consumed:N0}[/] / [dim]{DAILY_GOAL_GLASSES:N0}[/] glasses ({percentage:P0})");
+
+            // Use SharedHelpers to create the progress bar
+            string progressBar = _sharedHelpers.CreateProgressBar(percentage, 30, '█', '░');
+            Color borderColor = percentage >= 1.0 ? Color.Green : Color.Cyan1;
+            var progressPanel = _sharedHelpers.CreateProgressPanel(progressBar, "Hydration Progress", borderColor, "cyan");
+            AnsiConsole.Write(progressPanel);
+
+            // Status message
+            string statusMessage = percentage switch
+            {
+                >= 1.0 => "[green]🎉 Congratulations! You've reached your daily hydration goal![/]",
+                >= 0.75 => "[yellow]💪 Almost there! Keep it up![/]",
+                >= 0.5 => "[cyan]👍 Good progress! Halfway to your goal![/]",
+                _ => "[magenta]🚀 Great start! Keep drinking water![/]"
+            };
+
+            Console.WriteLine();
+            AnsiConsole.MarkupLine(statusMessage);
+
+            Console.WriteLine();
+
+            try
+            {
+                double totalWaterMl = consumed * 250; // Assuming 250ml per glass
+                AnsiConsole.MarkupLine($"💧 Total water consumed: [blue]{totalWaterMl:F0}ml[/]");
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine($"[yellow]⚠️ Could not calculate total water: {ex.Message}[/]");
+            }
+        }
+        catch (DivideByZeroException)
+        {
+            AnsiConsole.MarkupLine("[red]❌ Error: Invalid daily goal value (cannot be zero).[/]");
+        }
+        catch (OverflowException ex)
+        {
+            AnsiConsole.MarkupLine($"[red]❌ Calculation overflow error: {ex.Message}[/]");
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[red]❌ An unexpected error occurred while displaying progress: {ex.Message}[/]");
+        }
+    }
 
     private void ShowWeeklyProgress()
     {
