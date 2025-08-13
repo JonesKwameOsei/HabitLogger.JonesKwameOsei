@@ -29,7 +29,7 @@ void MainMenu()
             .Title("🎯 [bold green]Which habit would you like to track?[/]")
             .AddChoices(
                 "💧 Water Intake",
-                "🚶‍♂️ Walking Activity",
+                "🚶‍ Walking Activity",
                 "📊 View All Statistics",
                 "❌ Quit Application"));
 
@@ -68,7 +68,6 @@ void MainMenu()
 
 void WaterMenu(WaterTracker waterTracker)
 {
-  //WaterTracker waterTracker = new WaterTracker(connectionString);
   Helpers header = new Helpers();
   header.PrintWaterTrackerHeader();
   bool isWaterMenuRunning = true;
@@ -88,11 +87,11 @@ void WaterMenu(WaterTracker waterTracker)
             .Title("What would you like to do?")
             .AddChoices(
                 "➕ Add Water Record",
-                "🗑️ Delete Water Record",
-                "👁️ View Water Records",
-                "✏️ Update Water Record",
-                "📊 Show Water Statistics",
-                "🔙 Back to Main Menu"));
+                "🗑️  Delete Water Record",
+                "👁️  View Water Records",
+                "✏️  Update Water Record",
+                "📊  Show Water Statistics",
+                "🔙  Back to Main Menu"));
     try
     {
       switch (usersChoice)
@@ -100,19 +99,19 @@ void WaterMenu(WaterTracker waterTracker)
         case "➕ Add Water Record":
           waterTracker.AddRecord();
           break;
-        case "🗑️ Delete Water Record":
-          //waterTracker.DeleteRecord();
-          break;
-        case "👁️ View Water Records":
+        case "🗑️  Delete Water Record":
+          waterTracker.DeleteRecord();
+                    break;
+        case "👁️  View Water Records":
           waterTracker.ViewRecords();
           break;
-        case "✏️ Update Water Record":
-          //waterTracker.UpdateRecord();
-          break;
-        case "📊 Show Water Statistics":
-          //waterTracker.ShowStatistics();
-          break;
-        case "🔙 Back to Main Menu":
+        case "✏️  Update Water Record":
+          waterTracker.UpdateRecord();
+                    break;
+        case "📊  Show Water Statistics":
+          waterTracker.ShowStatistics();
+                    break;
+        case "🔙  Back to Main Menu":
           isWaterMenuRunning = false;
           Console.Clear();
           break;

@@ -215,7 +215,6 @@ internal class WalkTracker
         Console.ReadKey();
     }
 
-
     public void DeleteRecord()
     {
         try

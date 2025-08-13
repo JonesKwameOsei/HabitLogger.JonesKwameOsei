@@ -34,14 +34,14 @@ internal class WaterTracker
             AnsiConsole.Write(panel);
             Console.WriteLine();
 
-            string date = _sharedHelpers.GetDate("\n📅 Enter the date (format: dd-MM-yy) or insert [red]0[/] to Return to Main Menu: \n");
+            string date = _sharedHelpers.GetDate("\n📅 Enter the date (format: dd-MM-yy) or insert [red]0[/] to Return to Main Menu: ");
             if (date == "0") return;
 
-            int quantity = _sharedHelpers.GetValidInteger("🥤 Please enter number of glasses drunk (no decimals or negatives allowed) or enter [red]0[/] to Return to the Main Menu.", 0, 0, 50, "Glasses");
+            int quantity = _sharedHelpers.GetValidInteger("\n🥤 Please enter number of glasses drunk (no decimals or negatives allowed) or enter [red]0[/] to Return to the Main Menu.", 0, 0, 50, "Glasses");
             if (quantity == 0) return;
 
-            Console.Clear();
-            string description = AnsiConsole.Ask<string>("📝 Please enter a [green]description[/] for this record (optional):");
+            //Console.Clear();
+            string description = AnsiConsole.Ask<string>("\n\n📝 Please enter a [green]description[/] for this record (optional):");
 
             // Validate data before database insertion
             if (quantity <= 0)
@@ -275,7 +275,7 @@ internal class WaterTracker
         {
             Console.Clear();
 
-            var panel = new Panel(new Text("✏️ UPDATE WATER RECORD", new Style(Color.Green, Color.Black, Decoration.Bold)))
+            var panel = new Panel(new Text("✏️  UPDATE WATER RECORD", new Style(Color.Green, Color.Default, Decoration.Bold)))
                 .Border(BoxBorder.Rounded)
                 .BorderColor(Color.Green);
             AnsiConsole.Write(panel);
