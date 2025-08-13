@@ -517,6 +517,14 @@ internal class WalkTracker
                 AnsiConsole.Write(chart);
             }
         }
+        catch (SqliteException sqlEx)
+        {
+            AnsiConsole.MarkupLine($"[red]❌ Database error while retrieving weekly progress: {sqlEx.Message}[/]");
+        }
+        catch (InvalidOperationException ioEx)
+        {
+            AnsiConsole.MarkupLine($"[red]❌ Connection error while retrieving weekly progress: {ioEx.Message}[/]");
+        }
         catch (Exception ex)
         {
             AnsiConsole.MarkupLine($"[red]❌ Error retrieving weekly progress: {ex.Message}[/]");
