@@ -30,7 +30,8 @@ HabitLogger is a comprehensive personal health tracking application that
 empowers users to monitor and visualize their daily wellness habits. With an
 intuitive console interface powered by rich terminal graphics, users can
 effortlessly track water consumption and walking activities while gaining
-insights through detailed statistics and progress visualization.
+insights through detailed statistics and progress visualization. <br>
+![Habit Tracker](/images/image.png)
 
 ### 🎯 Key Objectives
 
@@ -39,6 +40,8 @@ insights through detailed statistics and progress visualization.
 - **Goal Achievement**: Set and track daily health goals
 - **Data Persistence**: Reliable SQLite database storage
 - **User Experience**: Intuitive navigation with beautiful console UI
+
+**SQLite Database Storage**: ![SQlite DB](/images/image-8.png)
 
 ## ✨ Features
 
@@ -50,7 +53,9 @@ insights through detailed statistics and progress visualization.
 - ✅ **Delete Records**: Remove incorrect or outdated entries
 - ✅ **Progress Visualization**: Real-time progress bars and goal tracking
 - ✅ **Daily Goals**: 8 glasses daily target with achievement indicators
-- ✅ **Statistics Dashboard**: Comprehensive consumption analytics
+- ✅ **Statistics Dashboard**: Comprehensive consumption analytics<br>
+  ![Water Tracker](/images/image-1.png)
+  ![Water Tracker Records](/images/image-3.png)
 
 ### 🚶‍♂️ Walking Activity Tracking
 
@@ -59,7 +64,9 @@ insights through detailed statistics and progress visualization.
 - ✅ **Auto Calculations**: Automatic conversion between steps and distance
 - ✅ **Goal Monitoring**: 10,000 steps daily target tracking
 - ✅ **Performance Metrics**: Calories burned and walking time estimates
-- ✅ **Weekly Charts**: Visual progress representation
+- ✅ **Weekly Charts**: Visual progress representation <br>
+  ![Waking Tracker](/images/image-4.png)
+  ![Walking Tracker Records](/images/image-5.png)
 
 ### 📊 Advanced Analytics
 
@@ -67,7 +74,8 @@ insights through detailed statistics and progress visualization.
 - ✅ **Weekly Progress Charts**: 7-day trend visualization
 - ✅ **Goal Achievement Tracking**: Success rate monitoring
 - ✅ **Best Performance Days**: Personal record highlighting
-- ✅ **Health Insights**: Intelligent progress analysis
+- ✅ **Health Insights**: Intelligent progress analysis <br>
+  ![Combined Records](/images/image-6.png)
 
 ### 🔧 Technical Features
 
@@ -75,7 +83,10 @@ insights through detailed statistics and progress visualization.
 - ✅ **Input Validation**: Data integrity and user-friendly validation
 - ✅ **Rich UI Components**: Tables, panels, progress bars, and charts
 - ✅ **Database Reliability**: SQLite with parameterized queries
-- ✅ **Responsive Design**: Adaptive console interface
+- ✅ **Responsive Console Design**: Adaptive console interface but more better
+  user experience on Unix interfaces.
+
+**Roust data Validation:** ![Data Validation](/images/image-7.png)
 
 ## 🛠️ Tech Stack
 
@@ -107,13 +118,23 @@ insights through detailed statistics and progress visualization.
 
 ```
 HabitLogger.JonesKwameOsei/
-├── 📁 Program.cs                 # Main entry point & menu system
-├── 📁 WaterTracker.cs           # Water intake management
-├── 📁 WalkTracker.cs            # Walking activity management
-├── 📁 SharedHelpers.cs          # Reusable utility methods
-├── 📁 UtilityHelpers.cs         # Error handling utilities
-├── 📁 Helpers.cs                # UI header components
+├── 📁 Helper/                    # UI header components
+│   └── Helpers.cs
+├── 📁 SharedHelpers/             # Reusable utility methods
+│   └── SharedHelpers.cs
+├── 📁 Utilities/                 # Error handling utilities
+│   └── UtilityHelpers.cs
+├── 📁 WalkingTracker/           # Walking activity management
+│   └── WalkTracker.cs
+├── 📁 WaterTracker/             # Water intake management
+│   └── WaterTracker.cs
+├── 📁 Properties/               # Application settings
+│   └── launchSettings.json
+├── 📁 images/                   # Documentation screenshots
+├── 📄 Program.cs                # Main entry point & menu system
 ├── 📄 HabitLogger.JonesKwameOsei.csproj
+├── 📄 HabitLogger.JonesKwameOsei.sln
+├── 📄 habit-Tracker.db         # SQLite database file
 └── 📄 README.md
 ```
 
@@ -121,16 +142,16 @@ HabitLogger.JonesKwameOsei/
 
 ```mermaid
 graph TD
-    A[Program.cs] --> B[WaterTracker]
-    A --> C[WalkTracker]
-    A --> D[Helpers]
+    A[Program.cs] --> B[WaterTracker/WaterTracker.cs]
+    A --> C[WalkingTracker/WalkTracker.cs]
+    A --> D[Helper/Helpers.cs]
 
-    B --> E[SharedHelpers]
+    B --> E[SharedHelpers/SharedHelpers.cs]
     C --> E
-    B --> F[UtilityHelpers]
+    B --> F[Utilities/UtilityHelpers.cs]
     C --> F
 
-    B --> G[(SQLite Database)]
+    B --> G[(habit-Tracker.db)]
     C --> G
 
     H[Spectre.Console] --> A
@@ -318,6 +339,9 @@ internal void PrintWalkingTrackerHeader()    // Walking tracking header
 
 ### 🔧 Installation
 
+> **Note**: Run this console app on a unix terminal (Windows users can use the
+> GitBash Terminal)
+
 1. **Clone the repository**
 
    ```bash
@@ -413,7 +437,7 @@ Upon first execution, the application will:
 
 ### 🔧 **Modern C# Development**
 
-- ✅ **C# 14 Features**: Latest language constructs
+- ✅ **C# 13 Features**: Latest language constructs
 - ✅ **.NET 9.0**: Modern framework utilisation
 - ✅ **Async/Await**: Asynchronous programming patterns
 - ✅ **LINQ**: Data querying and manipulation
@@ -447,6 +471,9 @@ This project demonstrates mastery of:
 
 ### 🚀 **Planned Features**
 
+- 💻 **Build a Frontend Interface to consume data:** Build and present data on a
+  GUI.
+- 🤖 **AI Integration:** Exercise and drinking recommendation with AI
 - 📱 **Export Functionality**: CSV/JSON data export
 - 🎨 **Themes**: Customizable UI color schemes
 - 📊 **Advanced Analytics**: Monthly/yearly reporting
@@ -459,6 +486,8 @@ This project demonstrates mastery of:
 - 🔧 **Configuration**: External settings management
 - 📦 **Dependency Injection**: IoC container integration
 - 🚀 **Performance**: Query optimization
+- 🪨 **More on SOLID Principles:** Taking a deep dive into SOLID principle to
+  enhance the architecture od this project
 
 ## 🤝 Contributing
 

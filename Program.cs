@@ -29,7 +29,7 @@ void MainMenu()
             .Title("🎯 [bold green]Which habit would you like to track?[/]")
             .AddChoices(
                 "💧 Water Intake",
-                "🚶‍ Walking Activity",
+                "🚶 Walking Activity",
                 "📊 View All Statistics",
                 "❌ Quit Application"));
 
@@ -40,7 +40,7 @@ void MainMenu()
         case "💧 Water Intake":
           WaterMenu(waterTracker);
           break;
-        case "🚶‍♂️ Walking Activity":
+        case "🚶 Walking Activity":
           WalkingMenu(walkingTracker);
           break;
         case "📊 View All Statistics":
@@ -101,16 +101,16 @@ void WaterMenu(WaterTracker waterTracker)
           break;
         case "🗑️  Delete Water Record":
           waterTracker.DeleteRecord();
-                    break;
+          break;
         case "👁️  View Water Records":
           waterTracker.ViewRecords();
           break;
         case "✏️  Update Water Record":
           waterTracker.UpdateRecord();
-                    break;
+          break;
         case "📊  Show Water Statistics":
           waterTracker.ShowStatistics();
-                    break;
+          break;
         case "🔙  Back to Main Menu":
           isWaterMenuRunning = false;
           Console.Clear();
